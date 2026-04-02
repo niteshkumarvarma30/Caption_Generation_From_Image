@@ -9,6 +9,7 @@ import numpy as np
 import io
 import base64
 import os
+import urllib.request  # <-- NEW: Required for downloading the model
 import matplotlib
 matplotlib.use('Agg') # Prevents server crashes
 
@@ -21,7 +22,19 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
 tokenizer.pad_token = tokenizer.eos_token
 model = XAICaptioner().to(DEVICE)
-model.load_state_dict(torch.load("lia_model_full_ep3.pth", map_location=DEVICE, weights_only=True))
+
+# --- NEW: Download Weights from Hugging Face if Missing ---
+weights_path = "lia_model_full_ep3.pth"
+model_download_url = "https://huggingface.co/niteshkumarvarmaa/caption_generation_model/resolve/main/lia_model_full_ep3.pth"
+
+if not os.path.exists(weights_path):
+    print("\n⚠️ Weights not found locally! Downloading from cloud storage...")
+    print("This may take a few minutes depending on AWS network speed.")
+    urllib.request.urlretrieve(model_download_url, weights_path)
+    print("✅ Download complete!\n")
+
+print("Loading model into memory...")
+model.load_state_dict(torch.load(weights_path, map_location=DEVICE, weights_only=True))
 model.eval()
 
 transform = transforms.Compose([
@@ -104,5 +117,6 @@ def predict():
     caption = tokenizer.decode(generated_ids[:num_words], skip_special_tokens=True).lstrip(", ").replace(" .", "").strip()
     return jsonify({'caption': caption, 'heatmap_image': image_base64})
 
+# NOTE: App is configured to listen on all public IPs for AWS deployment
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(host='0.0.0.0', debug=True, port=5000)

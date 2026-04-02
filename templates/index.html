@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explainable AI Captioner</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Explainable AI Captioner</h1>
+            <p>Upload an image to see the model generate a caption and visualize its attention.</p>
+        </header>
+
+        <main>
+            <div class="upload-section">
+                <input type="file" id="imageInput" accept="image/*">
+                <button id="generateBtn">Generate Caption & Heatmaps</button>
+            </div>
+
+            <div id="loading" class="hidden">
+                <p>AI is analyzing the image... Please wait.</p>
+            </div>
+
+            <div id="results" class="hidden">
+                <h2>Generated Caption:</h2>
+                <p id="captionText"></p>
+                <h2>Attention Heatmaps:</h2>
+                <img id="heatmapImg" src="" alt="XAI Heatmaps">
+            </div>
+
+            <div class="ai-disclaimer">
+                <p>⚠️ <strong>AI-Generated Content:</strong> This model was trained on a limited dataset and may produce inaccurate descriptions or experience "hallucinations" (e.g., confusing textures or subjects). Please verify outputs independently.</p>
+            </div>
+        </main>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

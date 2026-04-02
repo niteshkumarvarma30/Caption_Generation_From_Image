@@ -77,6 +77,7 @@ OS: Ubuntu 24.04 LTS
 Bash
 
 git clone https://github.com/your-username/Caption_Generation_From_Image.git
+
 cd Caption_Generation_From_Image
 
 2) Setup Virtual Environment:
@@ -84,7 +85,9 @@ cd Caption_Generation_From_Image
 Bash
 
 python3 -m venv .venv
+
 source .venv/bin/activate
+
 pip install -r requirements.txt
 
 3) Run Production Server:

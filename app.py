@@ -9,7 +9,7 @@ import numpy as np
 import io
 import base64
 import os
-import urllib.request  # <-- NEW: Required for downloading the model
+import urllib.request  # Required for downloading the model
 import matplotlib
 matplotlib.use('Agg') # Prevents server crashes
 
@@ -23,7 +23,7 @@ tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
 tokenizer.pad_token = tokenizer.eos_token
 model = XAICaptioner().to(DEVICE)
 
-# --- NEW: Download Weights from Hugging Face if Missing ---
+# --- Download Weights from Hugging Face if Missing ---
 weights_path = "lia_model_full_ep3.pth"
 model_download_url = "https://huggingface.co/niteshkumarvarmaa/caption_generation_model/resolve/main/lia_model_full_ep3.pth"
 
@@ -36,6 +36,15 @@ if not os.path.exists(weights_path):
 print("Loading model into memory...")
 model.load_state_dict(torch.load(weights_path, map_location=DEVICE, weights_only=True))
 model.eval()
+
+# --- THE MAGIC FIX: Quantization for CPU Speedup ---
+# We only apply this if we are on CPU (AWS t3.small). 
+# It converts 32-bit floats to 8-bit ints, making it 2x-3x faster.
+if DEVICE.type == 'cpu':
+    print("⚡ Applying Dynamic Quantization (8-bit) for faster CPU inference...")
+    model = torch.quantization.quantize_dynamic(
+        model, {torch.nn.Linear}, dtype=torch.qint8
+    )
 
 transform = transforms.Compose([
     transforms.Resize((224, 224)),
@@ -117,6 +126,6 @@ def predict():
     caption = tokenizer.decode(generated_ids[:num_words], skip_special_tokens=True).lstrip(", ").replace(" .", "").strip()
     return jsonify({'caption': caption, 'heatmap_image': image_base64})
 
-# NOTE: App is configured to listen on all public IPs for AWS deployment
 if __name__ == '__main__':
+    # Listen on Port 80 for Global Access
     app.run(host='0.0.0.0', debug=False, port=80)
